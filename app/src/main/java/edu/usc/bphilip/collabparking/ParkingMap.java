@@ -15,6 +15,7 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
@@ -84,19 +85,25 @@ public class ParkingMap extends MapFragment {
         //Location mCurrentLocation;
         Log.d("Debug-Collabparking", "In setupMap");
         mMap.setMyLocationEnabled(true);
-
-        mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(15));
+        //LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        GPSTracker gps = new GPSTracker(getActivity());
+        if(gps.canGetLocation()){
+            LatLng currentPosition =  new LatLng(gps.getLatitude(), gps.getLongitude());
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(currentPosition));
+        }
+            mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
 
             @Override
             public void onMyLocationChange(Location arg0) {
                 // TODO Auto-generated method stub
-                float zoomLevel = 14;
+                //float zoomLevel = 14;
                 LatLng currentPosition = new LatLng(arg0.getLatitude(), arg0.getLongitude());
                 mMap.clear();
                 mMap.addMarker(new MarkerOptions().position(currentPosition).title("Me"));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, zoomLevel));
+                //float zoomLevel = mMap.getCameraPosition().zoom;
+                //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, zoomLevel));
 
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(currentPosition));
 
                 //fetching the parking locations
                 try {
@@ -134,7 +141,11 @@ public class ParkingMap extends MapFragment {
                 LatLng parkingSpot = new LatLng(latitude, longitude);
 
                 BitmapDescriptor parkingBitmap = BitmapDescriptorFactory.fromResource(R.drawable.parking_marker);
-                mMap.addMarker(new MarkerOptions().position(parkingSpot).icon(parkingBitmap).title(name));
+                Marker psMarker = mMap.addMarker(new MarkerOptions().position(parkingSpot)
+                                .icon(parkingBitmap)
+                                .title(name)
+                                .snippet("Capacity: 60")
+                );
             }
         }
         catch(Exception e){

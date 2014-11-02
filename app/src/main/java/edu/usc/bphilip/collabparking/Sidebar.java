@@ -7,6 +7,7 @@ import android.app.FragmentManager;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Base64;
@@ -22,7 +23,7 @@ import java.security.NoSuchAlgorithmException;
 
 
 public class Sidebar extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks, CrowdSourceMenu.OnFragmentInteractionListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -102,6 +103,13 @@ public class Sidebar extends Activity
                     .commit();*/
             return;
         }
+        if(position == 3){
+            CrowdSourceMenu csmObj = new CrowdSourceMenu();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, csmObj)
+                    .commit();
+            return;
+        }
         fragmentManager.beginTransaction()
                 .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
                 .commit();
@@ -152,6 +160,10 @@ public class Sidebar extends Activity
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void onFragmentInteraction(Uri uri){
+
     }
 
     /**

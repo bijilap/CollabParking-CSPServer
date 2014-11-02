@@ -2,10 +2,15 @@
 <resources>
 
     <string name="app_name">CollabParking</string>
-    <string name="title_section1">Login</string>
-    <string name="title_section2">Find Parking</string>
-    <string name="title_section3">Crowd Contributor</string>
-    <string name="title_section4">Settings</string>
+
+    <string-array name="menu_list">
+        <item>Login</item>
+        <item>Find Parking</item>
+        <item>Nearby Parking</item>
+        <item>Crowd Contributor</item>
+        <item>Settings</item>
+    </string-array>
+
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_example"></string>
@@ -13,5 +18,6 @@
     <string name="title_activity_maps">Map</string>
     <!-- Facebook app id comes below -->
     <string name="facebook_app_id">1575303699358161</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>
