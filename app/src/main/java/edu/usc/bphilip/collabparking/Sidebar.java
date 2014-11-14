@@ -23,7 +23,8 @@ import java.security.NoSuchAlgorithmException;
 
 
 public class Sidebar extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks, CrowdSourceMenu.OnFragmentInteractionListener {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks, CrowdSourceMenu.OnFragmentInteractionListener,
+        SettingsFragment.OnFragmentInteractionListener{
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -107,6 +108,13 @@ public class Sidebar extends Activity
             CrowdSourceMenu csmObj = new CrowdSourceMenu();
             fragmentManager.beginTransaction()
                     .replace(R.id.container, csmObj)
+                    .commit();
+            return;
+        }
+        if(position == 4){
+            SettingsFragment sfObj = new SettingsFragment();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, sfObj)
                     .commit();
             return;
         }
