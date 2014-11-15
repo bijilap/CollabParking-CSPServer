@@ -1,0 +1,10 @@
+{
+	"default": {
+		"port": 3000
+	},
+
+	"database": {
+		"machine": "mongodb://localhost/",
+		"name": "collabparking"
+	}
+}
