@@ -8,12 +8,24 @@ QuestionSchema = new Schema(
     },
     answers: [
       {
-  			type: Schema.Types.ObjectId,
-  			ref: 'Answer'
+          answer: {
+            type: String,
+            required: true
+          },
+          voters: [
+            {
+              type: Schema.Types.ObjectId,
+              ref: 'User'
+            }
+          ]
       }
     ],
     timestamp: {
       type: Number
+    },
+    askedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User'
     },
     respondents: [
       {
@@ -22,6 +34,9 @@ QuestionSchema = new Schema(
       }
     ],
     answerSatisfaction: {
+      type: Boolean
+    },
+    questionAnswered: {
       type: Boolean
     }
   }

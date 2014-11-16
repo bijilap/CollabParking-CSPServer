@@ -15,6 +15,7 @@
     "jade": "~1.6.0",
     "stylus": "0.42.3",
     "mongoose": "~3.8.19",
-    "node-gcm": "~0.9.6"
+    "node-gcm": "~0.9.6",
+    "express-session": "^1.7.6"
   }
 }

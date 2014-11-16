@@ -5,7 +5,6 @@ var gcm = require('node-gcm');
 
 var User = require('../models/user');
 var Question = require('../models/question');
-var Answer = require('../models/answer');
 
 
 /* GET home page. */
@@ -16,15 +15,12 @@ router.get('/', function(req, res) {
 /* Verify login. If user doesn't exist, add user to db
 If deviceId doesn't exist then add to user's list of devices
 */
-router.post('/hello', function(req,res){
-  console.log('hello');
-  res.render('index', { title: 'Express' });
-}
-);
+
 router.post('/login', function(req, res){
      console.log('in login page');
      var userId = req.body.userId;
      var deviceId = req.body.deviceId;
+     csp_session = req.session;
 
     if (userId.length == 0 || deviceId.length == 0)
       return res.json({error: 'Invalid parameters given!'});
@@ -51,6 +47,7 @@ router.post('/login', function(req, res){
               }
             );
           }
+          return res.json({message: 'Logged in successfully'});
         }
         else {
           //if user doesn't exist, add new user with new device id
@@ -75,6 +72,67 @@ router.post('/login', function(req, res){
         }
       }
     });
+});
+
+/* ask a question. Additional arguments may be passed:
+  1. qcode == 1 [Is parking available]
+    a. lot_name
+    b. longitude
+    c. latitude
+*/
+router.post('/:user_id/ask/:question_code', function(req, res){
+  var userId = req.params.user_id;
+  var qcode = req.params.question_code;
+  var question = "";
+  var answers = [];
+  var askedBy;
+
+  if(qcode == 1){
+    var parking_lot = req.body.parking_lot;
+    var latitude = req.body.latitude;
+    var longitude = req.body.longitude;
+    question = "Is there any parking available in "+parking_lot+"?";
+    answers.push({
+      answer: "Yes",
+      voters: []
+    });
+    answers.push({
+      answer: "No",
+      voters: []
+    });
+    answers.push({
+      answer: "Dunno",
+      voters: []
+    });
+  }
+
+  //Get current user's record from db
+  User.findOne({userId: userId}, function(err,user){
+    if (err) {
+      console.log(err);
+      return res.json({error: err});
+    }
+    else{
+      if(user){
+        var newQuestion = new Question({
+          question: question,
+          answers: answers,
+          askedBy: user,
+          timestamp: new Date().getTime(),
+          respondents: [],
+          answerSatisfaction: false,
+          questionAnswered: false
+        });
+        newQuestion.save(function(){
+          console.log(newQuestion);
+        });
+        return res.json({message: 'Question posed to other users'});
+      }
+    }
+  });
+  //create new record for new question
+
+  //return res.json({message: 'Question posed to other users'});
 });
 
 module.exports = router;
