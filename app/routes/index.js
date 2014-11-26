@@ -5,11 +5,88 @@ var gcm = require('node-gcm');
 
 var User = require('../models/user');
 var Question = require('../models/question');
+var UserCredential = require('../models/user_credential');
+
+var crypto = require('crypto');
+
+var extra_functions = require('./functions.js');
 
 
 /* GET home page. */
 router.get('/', function(req, res) {
   res.render('index', { title: 'Express' });
+});
+
+/*
+  Simple authentication
+*/
+router.post('/:user_id/authenticate', function(req,res){
+    var userId = req.params.user_id;
+    var password = req.body.password;
+    UserCredential.findOne({userId: userId}, function(err, usrc){
+      if(err){
+        console.log(err);
+        return res.json({message:'Unknown error', code:"-400" });
+      }
+      else{
+        if(usrc){
+          var hashs = crypto.createHash('md5');
+          var hashp = crypto.createHash('sha512');
+          hashs.update(userId);
+          var salt = hashs.digest('base64');
+          hashp.update(password+salt);
+          var hashPassword = hashp.digest('base64');
+          console.log(usrc)
+          console.log(hashPassword);
+          console.log(usrc.password);
+          if(hashPassword != usrc.password)
+            return res.json({message:'Authentication failed - Invalid credential', code:"-402" });
+
+          return res.json({message:'Success', code:"200" });
+        }
+        else{
+          return res.json({message:'Authentication failed - No such user', code:"-401" })
+        }
+      }
+    });
+});
+
+router.post('/:user_id/new_user', function(req,res){
+  var userId = req.params.user_id;
+  var password = req.body.password;
+  UserCredential.findOne({userId: userId}, function(err, user){
+    if(err){
+      console.log(err);
+      return res.json({message:'Unknown error', code:"-400" });
+    }
+    else{
+      if(!user){
+        var hashs = crypto.createHash('md5');
+        var hashp = crypto.createHash('sha512');
+        hashs.update(userId);
+        var salt = hashs.digest('base64');
+        hashp.update(password+salt);
+        var hashPassword = hashp.digest('base64');
+        console.log(hashPassword);
+
+        var newCredential =  new UserCredential({
+          userId: userId,
+          password: hashPassword,
+          saltString: salt
+        });
+
+        newCredential.save(function(){
+              return res.json({message:'Success', code:"200" });
+        });
+
+        //return res.json({message:'Waiting', code:"-402" });
+      }
+      else{
+        console.log(user);
+        return res.json({message:'User already exists', code:"-401" })
+      }
+    }
+  });
 });
 
 /* Verify login. If user doesn't exist, add user to db
@@ -86,11 +163,13 @@ router.post('/:user_id/ask/:question_code', function(req, res){
   var question = "";
   var answers = [];
   var askedBy;
+  var latitude;
+  var longitude;
 
   if(qcode == 1){
     var parking_lot = req.body.parking_lot;
-    var latitude = req.body.latitude;
-    var longitude = req.body.longitude;
+    latitude = req.body.latitude;
+    longitude = req.body.longitude;
     question = "Is there any parking available in "+parking_lot+"?";
     answers.push({
       answer: "Yes",
@@ -133,6 +212,11 @@ router.post('/:user_id/ask/:question_code', function(req, res){
   //create new record for new question
 
   //return res.json({message: 'Question posed to other users'});
+});
+
+
+router.post('/:user_id/ask/:question_code', function(req, res){
+
 });
 
 module.exports = router;
