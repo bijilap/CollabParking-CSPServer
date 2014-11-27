@@ -219,7 +219,7 @@ router.post('/:user_id/ask/:question_code', function(req, res){
 
 });
 
-router.post('/:user_id/ask/:question_code', function(req, res){
+router.post('/:user_id/askTestQuestion', function(req, res){
   var userId = req.params.user_id;
   var dummyQuestion = "Test question?";
   sendQuestionToDevice(userId, dummyQuestion);
