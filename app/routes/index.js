@@ -293,10 +293,14 @@ function sendQuestionToDevice(userId, question){
         }
         else{
           if(user){
+	    var message = new gcm.Message();
+	    message.addDataWithKeyValue('question',question);
             devices = user.deviceList;
             var sender = new gcm.Sender('AIzaSyBX621CX0O8oJN7Huk3krrRx7AnGtdZ36Q');
-            sender.send(question, devices, 4, function(err, result) {
-            if (err){
+            sender.send(message, devices, 4, function(err, result) {
+            
+	    console.log(message);
+	    if (err){
               console.log('Error sending message!');
 	      console.log(err);
               return "";
