@@ -49,10 +49,10 @@ function sendQuestionToDevice(userId, question){
             var sender = new gcm.Sender('AIzaSyD7ZO1TPCyCTsXQLj2xUkCY23I8UenziBc');
             sender.send(question, devices, 4, function(err, result) {
             if (err)
-              return res.json({error: 'Error switching user to new device!'});
+              return res.json({error: 'Error sending message!'});
             else {
               console.log(result);
-              return res.json({message: 'User moved to new device'});
+              return res.json({message: 'Message sent successfully'});
             }
           });
         }
