@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var mongoose = require('mongoose');
 var gcm = require('node-gcm');
+var http = require('http');
 
 var User = require('../models/user');
 var Question = require('../models/question');
@@ -151,6 +152,64 @@ router.post('/login', function(req, res){
     });
 });
 
+/*
+  User profile
+*/
+router.post('/:user_id/profile', function(req,res){
+  var userId = req.params.user_id;
+  User.findOne({userId: userId}, function(err,user){
+    if (err) {
+      console.log(err);
+      return res.json({error: err});
+    }
+    else{
+      if(user){
+        var resultJson = {
+          userId : user.userId,
+          points : user.rating.points,
+          stars : user.rating.stars,
+          price: user.preference.price,
+          distance: user.preference.distance
+        };
+        return res.json(resultJson);
+      }
+      else{
+        return res.json({});
+      }
+    }
+  });
+});
+
+router.post('/:user_id/preference/update/:metric/:valuem', function(req,res){
+  var userId = req.params.user_id;
+  var metric = req.params.metric;
+  var value = req.params.valuem;
+  User.findOne({userId: userId}, function(err,user){
+    if (err) {
+      console.log(err);
+      return res.json({error: err});
+    }
+    else{
+      if(user){
+        if(metric == "distance")
+          user.preference.distance = value;
+        else(metric == "price")
+          user.preference.price = value;
+        user.save(function()
+          {
+            console.log(user);
+            return res.json({message: 'Updated metric'});
+          }
+        );
+      }
+      else{
+        console.log("No such user");
+        return res.json({message : 'no such user'});
+      }
+    }
+  });
+});
+
 /* ask a question. Additional arguments may be passed:
   1. qcode == 1 [Is parking available]
     a. lot_name
@@ -252,6 +311,43 @@ function sendQuestionToDevice(userId, question){
       }
     });
 
+}
+
+function broadcastQuestion(question, latitude, longitude){
+    var httpOption = {
+    host : '54.69.152.156', // here only the domain name
+    // (no http/https !)
+    port : 55321,
+    path : '/csp/data/parking/query/nearbyUsers', // the rest of the url with parameters if needed
+    method : 'GET' // do GET
+    };
+
+    var req = http.request(options, function(res) {
+    console.log("statusCode: ", res.statusCode);
+    console.log("headers: ", res.headers);
+
+    res.on('data', function(data) {
+      //process.stdout.write(d);
+      console.log("BQ-Data", data);
+      /*
+        assuming result set has structure :
+        {
+        userList: [userid1, userid2,.....]
+        }
+      */
+      var userList = data['userList'];
+      for(var i in userList){
+        sendQuestionToDevice(userList[i], question);
+      }
+    });
+
+  });
+
+  req.end();
+
+  req.on('error', function(e) {
+    console.error(e);
+  });
 }
 
 module.exports = router;
