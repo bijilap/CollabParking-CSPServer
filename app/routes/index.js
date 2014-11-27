@@ -237,11 +237,14 @@ function sendQuestionToDevice(userId, question){
             devices = user.deviceList;
             var sender = new gcm.Sender('AIzaSyD7ZO1TPCyCTsXQLj2xUkCY23I8UenziBc');
             sender.send(question, devices, 4, function(err, result) {
-            if (err)
-              return res.json({error: 'Error sending message!'});
+            if (err){
+              console.log('Error sending message!');
+              return "";
+            }
             else {
               console.log(result);
-              return res.json({message: 'Message sent successfully'});
+              return "";
+              //return res.json({message: 'Message sent successfully'});
             }
           });
         }
