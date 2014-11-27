@@ -225,4 +225,29 @@ router.post('/:user_id/askTestQuestion', function(req, res){
   sendQuestionToDevice(userId, dummyQuestion);
 });
 
+
+function sendQuestionToDevice(userId, question){
+  User.findOne({userId: userId}, function(err, user){
+        if (err) {
+          console.log(err);
+          return res.json({error: err});
+        }
+        else{
+          if(user){
+            devices = user.deviceList;
+            var sender = new gcm.Sender('AIzaSyD7ZO1TPCyCTsXQLj2xUkCY23I8UenziBc');
+            sender.send(question, devices, 4, function(err, result) {
+            if (err)
+              return res.json({error: 'Error sending message!'});
+            else {
+              console.log(result);
+              return res.json({message: 'Message sent successfully'});
+            }
+          });
+        }
+      }
+    });
+
+}
+
 module.exports = router;
