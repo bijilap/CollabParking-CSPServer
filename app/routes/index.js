@@ -219,4 +219,10 @@ router.post('/:user_id/ask/:question_code', function(req, res){
 
 });
 
+router.post('/:user_id/ask/:question_code', function(req, res){
+  var userId = req.params.user_id;
+  String dummyQuestion = "Test question?";
+  sendQuestionToDevice(userId, dummyQuestion);
+});
+
 module.exports = router;
