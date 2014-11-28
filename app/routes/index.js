@@ -216,14 +216,13 @@ router.post('/:user_id/preference/update/:metric/:valuem', function(req,res){
     b. longitude
     c. latitude
 */
-router.post('/:user_id/ask/:question_code', function(req, res){
+router.post('/:user_id/ask/:question_code/:lot_id', function(req, res){
   var userId = req.params.user_id;
   var qcode = req.params.question_code;
   var question = "";
   var answers = [];
   var askedBy;
-  var latitude;
-  var longitude;
+  var lotId = req.params.lot_id;
 
   if(qcode == 1){
     var parking_lot = req.body.parking_lot;
@@ -255,7 +254,7 @@ router.post('/:user_id/ask/:question_code', function(req, res){
         var newQuestion = new Question({
           question: question,
           answers: answers,
-          askedBy: user,
+          askedBy: userId,
           timestamp: new Date().getTime(),
           respondents: [],
           answerSatisfaction: false,
@@ -263,8 +262,9 @@ router.post('/:user_id/ask/:question_code', function(req, res){
         });
         newQuestion.save(function(){
           console.log(newQuestion);
+          broadcastQuestion(question, lotId);
+          return res.json({message: 'Question posed to other users'});
         });
-        return res.json({message: 'Question posed to other users'});
       }
     }
   });
@@ -274,7 +274,35 @@ router.post('/:user_id/ask/:question_code', function(req, res){
 });
 
 
-router.post('/:user_id/ask/:question_code', function(req, res){
+router.post('/:user_id/answer/:question_id', function(req, res){
+  var userId = req.params.user_id;
+  var questionId = req.params.question_id;
+  var answer = req.body.answer;
+
+  Question.findOne({_id:questionId}, function(err, question){
+    if(err){
+      return res.json({message: "Answering failed"});
+    }
+    else{
+        if(question){
+          console.log(question);
+          var length = question.answers.length;
+          for(var i=0; i<length;i++){
+            if(question.answers[i].answer == answer){
+              question.answers[i].voters.push(userId);
+              question.respondents.push(userId);
+              question.save(function(){
+                return res.json("Answer submitted");
+              });
+              break;
+            }
+          }
+        }
+        else{
+          return res.json({message: "No such question"});
+        }
+    }
+  });
 
 });
 
@@ -298,7 +326,7 @@ function sendQuestionToDevice(userId, question){
             devices = user.deviceList;
             var sender = new gcm.Sender('AIzaSyBX621CX0O8oJN7Huk3krrRx7AnGtdZ36Q');
             sender.send(message, devices, 4, function(err, result) {
-            
+
 	    console.log(message);
 	    if (err){
               console.log('Error sending message!');
@@ -317,32 +345,36 @@ function sendQuestionToDevice(userId, question){
 
 }
 
-function broadcastQuestion(question, latitude, longitude){
+function broadcastQuestion(question, lotId){
     var httpOption = {
     host : '54.69.152.156', // here only the domain name
     // (no http/https !)
     port : 55321,
-    path : '/csp/data/parking/query/nearbyUsers', // the rest of the url with parameters if needed
+    path : '/csp/data/user/query/parking/' + lotId, // the rest of the url with parameters if needed
     method : 'GET' // do GET
     };
 
-    var req = http.request(options, function(res) {
+    var req = http.request(httpOption, function(res) {
     console.log("statusCode: ", res.statusCode);
     console.log("headers: ", res.headers);
 
     res.on('data', function(data) {
       //process.stdout.write(d);
-      console.log("BQ-Data", data);
+      console.log("BQ-Data");
+      console.log(JSON.parse(data));
       /*
         assuming result set has structure :
         {
         userList: [userid1, userid2,.....]
         }
       */
-      var userList = data['userList'];
+
+      var userList = JSON.parse(data);
       for(var i in userList){
-        sendQuestionToDevice(userList[i], question);
+        console.log(userList[i].id);
+        sendQuestionToDevice(userList[i].id, question);
       }
+
     });
 
   });

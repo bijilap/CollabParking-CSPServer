@@ -14,8 +14,8 @@ QuestionSchema = new Schema(
           },
           voters: [
             {
-              type: Schema.Types.ObjectId,
-              ref: 'User'
+              type: String,
+              required: true
             }
           ]
       }
@@ -24,13 +24,13 @@ QuestionSchema = new Schema(
       type: Number
     },
     askedBy: {
-      type: Schema.Types.ObjectId,
-      ref: 'User'
+      type: String,
+      required: true
     },
     respondents: [
       {
-          type: Schema.Types.ObjectId,
-          ref: 'User'
+          type: String,
+          required: true
       }
     ],
     answerSatisfaction: {
