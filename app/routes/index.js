@@ -269,7 +269,7 @@ router.post('/:user_id/ask/:question_code/:lot_id', function(req, res){
   		
   		Question.findOne({}, function(err, ques){
   			solutions = ques.answers;
-  			console.log(solutions);
+  			console.log(ques);
   			var no_percent = 0;
   			var yes_percent = 0;
   			if((solutions[0].voters.length + solutions[1].voters.length)!=0){
