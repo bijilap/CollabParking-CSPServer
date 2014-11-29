@@ -260,9 +260,10 @@ router.post('/:user_id/ask/:question_code/:lot_id', function(req, res){
           answerSatisfaction: false,
           questionAnswered: false
         });
-        newQuestion.save(function(){
+        newQuestion.save(function(err, thisQues){
+	  var quesId = thisQues._id;
           console.log(newQuestion);
-          broadcastQuestion(question, lotId);
+          broadcastQuestion(question, lotId, quesId);
           return res.json({message: 'Question posed to other users'});
         });
       }
@@ -313,7 +314,7 @@ router.post('/:user_id/askTestQuestion', function(req, res){
 });
 
 
-function sendQuestionToDevice(userId, question){
+function sendQuestionToDevice(userId, question, quesId){
   User.findOne({userId: userId}, function(err, user){
         if (err) {
           console.log(err);
@@ -323,6 +324,7 @@ function sendQuestionToDevice(userId, question){
           if(user){
 	    var message = new gcm.Message();
 	    message.addDataWithKeyValue('question',question);
+	    message.addDataWithKeyValue('question_id', quesId);
             devices = user.deviceList;
             var sender = new gcm.Sender('AIzaSyBX621CX0O8oJN7Huk3krrRx7AnGtdZ36Q');
             sender.send(message, devices, 4, function(err, result) {
@@ -345,7 +347,7 @@ function sendQuestionToDevice(userId, question){
 
 }
 
-function broadcastQuestion(question, lotId){
+function broadcastQuestion(question, lotId, quesId){
     var httpOption = {
     host : '54.69.152.156', // here only the domain name
     // (no http/https !)
@@ -372,7 +374,7 @@ function broadcastQuestion(question, lotId){
       var userList = JSON.parse(data);
       for(var i in userList){
         console.log(userList[i].id);
-        sendQuestionToDevice(userList[i].id, question);
+        sendQuestionToDevice(userList[i].id, question, quesId);
       }
 
     });
