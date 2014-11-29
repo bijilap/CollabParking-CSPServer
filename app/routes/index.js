@@ -264,6 +264,14 @@ router.post('/:user_id/ask/:question_code/:lot_id', function(req, res){
 	  var quesId = thisQues._id;
           console.log(newQuestion);
           broadcastQuestion(question, lotId, quesId);
+          setTimeout(function() {
+  		console.log('Reply to poser');
+  		
+  		Question.findOne({}, function(err, ques){
+  			solutions = ques.answers;
+			sendAnswerToDevice(userId, question, solutions[0].voters.length, solutions[1].voters.length);
+  		});
+	   }, 200000);
           return res.json({message: 'Question posed to other users'});
         });
       }
@@ -346,6 +354,41 @@ function sendQuestionToDevice(userId, question, quesId){
     });
 
 }
+
+function sendAnswerToDevice(userId, question, yes_count, no_count){
+  User.findOne({userId: userId}, function(err, user){
+        if (err) {
+          console.log(err);
+          return res.json({error: err});
+        }
+        else{
+          if(user){
+	    var message = new gcm.Message();
+	    message.addDataWithKeyValue('question',question);
+	    message.addDataWithKeyValue('yes', (yes_count*100)/(yes_count + no_count));
+	    message.addDataWithKeyValue('no', (no_count*100)/(yes_count + no_count));
+            devices = user.deviceList;
+            var sender = new gcm.Sender('AIzaSyBX621CX0O8oJN7Huk3krrRx7AnGtdZ36Q');
+            sender.send(message, devices, 4, function(err, result) {
+
+	    console.log(message);
+	    if (err){
+              console.log('Error sending message!');
+	      console.log(err);
+              return "";
+            }
+            else {
+              console.log(result);
+              return "";
+              //return res.json({message: 'Message sent successfully'});
+            }
+          });
+        }
+      }
+    });
+
+}
+
 
 function broadcastQuestion(question, lotId, quesId){
     var httpOption = {
