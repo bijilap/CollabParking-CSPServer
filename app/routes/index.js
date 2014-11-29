@@ -269,7 +269,13 @@ router.post('/:user_id/ask/:question_code/:lot_id', function(req, res){
   		
   		Question.findOne({}, function(err, ques){
   			solutions = ques.answers;
-			sendAnswerToDevice(userId, question, solutions[0].voters.length, solutions[1].voters.length);
+  			var no_percent = 0;
+  			var yes_percent = 0;
+  			if((solutions[0].voters.length + solutions[1].voters.length)!=0){
+  				no_percent = (solutions[1].voters.length * 100)/(solutions[0].voters.length + solutions[1].voters.length);
+  				yes_percent = (solutions[0].voters.length * 100)/(solutions[0].voters.length + solutions[1].voters.length);
+  			}
+			sendAnswerToDevice(userId, question, yes_percent, no_percent);
   		});
 	   }, 200000);
           return res.json({message: 'Question posed to other users'});
@@ -333,6 +339,7 @@ function sendQuestionToDevice(userId, question, quesId){
 	    var message = new gcm.Message();
 	    message.addDataWithKeyValue('question',question);
 	    message.addDataWithKeyValue('question_id', quesId);
+	    message.addDataWithKeyValue('gcm_type', "question");
             devices = user.deviceList;
             var sender = new gcm.Sender('AIzaSyBX621CX0O8oJN7Huk3krrRx7AnGtdZ36Q');
             sender.send(message, devices, 4, function(err, result) {
@@ -355,7 +362,7 @@ function sendQuestionToDevice(userId, question, quesId){
 
 }
 
-function sendAnswerToDevice(userId, question, yes_count, no_count){
+function sendAnswerToDevice(userId, question, yes_percent, no_percent){
   User.findOne({userId: userId}, function(err, user){
         if (err) {
           console.log(err);
@@ -365,8 +372,9 @@ function sendAnswerToDevice(userId, question, yes_count, no_count){
           if(user){
 	    var message = new gcm.Message();
 	    message.addDataWithKeyValue('question',question);
-	    message.addDataWithKeyValue('yes', (yes_count*100)/(yes_count + no_count));
-	    message.addDataWithKeyValue('no', (no_count*100)/(yes_count + no_count));
+	    message.addDataWithKeyValue('gcm_type', "solution");
+	    message.addDataWithKeyValue('yes', yes_percent);
+	    message.addDataWithKeyValue('no', no_percent);
             devices = user.deviceList;
             var sender = new gcm.Sender('AIzaSyBX621CX0O8oJN7Huk3krrRx7AnGtdZ36Q');
             sender.send(message, devices, 4, function(err, result) {
