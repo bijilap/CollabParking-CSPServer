@@ -308,7 +308,7 @@ router.post('/:user_id/answer/:question_id', function(req, res){
               question.answers[i].voters.push(userId);
               question.respondents.push(userId);
               question.save(function(){
-                return res.json("Answer submitted");
+                return res.json({message: "Answer submitted"});
               });
               break;
             }
