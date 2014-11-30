@@ -267,7 +267,7 @@ router.post('/:user_id/ask/:question_code/:lot_id', function(req, res){
           setTimeout(function() {
   		console.log('Reply to poser');
   		
-  		Question.findOne({}, function(err, ques){
+  		Question.findOne({_id: quesId}, function(err, ques){
   			solutions = ques.answers;
   			console.log(ques);
   			var no_percent = 0;
