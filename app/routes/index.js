@@ -263,7 +263,7 @@ router.post('/:user_id/ask/:question_code/:lot_id', function(req, res){
         newQuestion.save(function(err, thisQues){
 	  var quesId = thisQues._id;
           console.log(newQuestion);
-          broadcastQuestion(question, lotId, quesId);
+          broadcastQuestion(question, lotId, quesId, userId);
           setTimeout(function() {
   		console.log('Reply to poser');
   		
@@ -399,7 +399,7 @@ function sendAnswerToDevice(userId, question, yes_percent, no_percent){
 }
 
 
-function broadcastQuestion(question, lotId, quesId){
+function broadcastQuestion(question, lotId, quesId, userId){
     var httpOption = {
     host : '54.69.152.156', // here only the domain name
     // (no http/https !)
@@ -425,6 +425,10 @@ function broadcastQuestion(question, lotId, quesId){
 
       var userList = JSON.parse(data);
       for(var i in userList){
+	if(userId == userList[i].id)
+		{
+			continue;
+		}
         console.log(userList[i].id);
         sendQuestionToDevice(userList[i].id, question, quesId);
       }
